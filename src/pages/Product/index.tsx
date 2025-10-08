@@ -38,7 +38,7 @@ const Product = () => {
       <Gallery
         name={game.name}
         defaultCover={game.media.cover}
-        items={game.media.galery}
+        items={game.media.gallery}
       />
     </>
   )
