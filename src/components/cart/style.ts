@@ -32,7 +32,6 @@ export const SideBar = styled.aside`
   padding: 40px 16px 0 16px;
   max-width: 360px;
   width: 100%;
-
   ${ButtonContainer} {
     max-width: 100%;
     width: 100%;
@@ -42,7 +41,7 @@ export const Prices = styled.p`
   font-weight: bold;
   font-size: 14px;
   color: ${cores.branca};
-  margin_bottom: 24px;
+  margin-bottom: 24px;
 
   span {
     display: block;

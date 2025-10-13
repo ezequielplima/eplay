@@ -3,7 +3,7 @@ import { Game } from '../pages/Home'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: 'https://ebac-fake-api.vercel.app/api/eplay'
+    baseUrl: 'https://api-ebac.vercel.app/api/eplay'
   }),
   endpoints: (builder) => ({
     getFeaturedGame: builder.query<Game, void>({
@@ -19,7 +19,7 @@ const api = createApi({
       query: () => 'acao'
     }),
     getSportsGames: builder.query<Game[], void>({
-      query: () => 'asportes'
+      query: () => 'esportes'
     }),
     getSimulationGames: builder.query<Game[], void>({
       query: () => 'simulacao'
