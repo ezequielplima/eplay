@@ -21,9 +21,13 @@ export const CartContainer = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  display: flex;
+  display: none;
   justify-content: flex-end;
   z-index: 1;
+
+  &.is-open {
+    display: flex;
+  }
 `
 
 export const SideBar = styled.aside`
@@ -58,45 +62,45 @@ export const Quantity = styled.p`
   margin-bottom: 16px;
 `
 export const CartItem = styled.li`
-display: flex;
-border-bottom: 1px solid ${cores.cinzaClaro};
-padding: 8px 0;
-position: relative;
+  display: flex;
+  border-bottom: 1px solid ${cores.cinzaClaro};
+  padding: 8px 0;
+  position: relative;
 
-img {
-height: 80px:
-width: 80px:
-object-fit: cover;
-margin-right: 24px;
-}
+  img {
+    height: 80px;
+    width: 80px;
+    object-fit: cover;
+    margin-right: 24px;
+  }
 
-h3 {
-color: ${cores.branca};
-font-weight: bold;
-font-size: 16px;
-}
+  h3 {
+    color: ${cores.branca};
+    font-weight: bold;
+    font-size: 16px;
+  }
 
-span {
-display: block;
-color: ${cores.branca};
-font-weight: bold;
-font-size: 14px;
-}
+  span {
+    display: block;
+    color: ${cores.branca};
+    font-weight: bold;
+    font-size: 14px;
+  }
 
-${TagContainer} {
-margin-right: 8px;
-margin-top: 8px;
-margin-bottom: 16px;
-}
+  ${TagContainer} {
+    margin-right: 8px;
+    margin-top: 8px;
+    margin-bottom: 16px;
+  }
 
-button {
-background-image: url (${fechar});
-width: 16px;
-height: 16px;
-border: none;
-background-color: transparent;
-position: absolute;
-top: 8px;
-right: 0;
-}
+  button {
+    background-image: url(${fechar});
+    width: 16px;
+    height: 16px;
+    border: none;
+    background-color: transparent;
+    position: absolute;
+    top: 8px;
+    right: 0;
+  }
 `
