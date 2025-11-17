@@ -8,9 +8,11 @@ import boleto from '../../assets/images/boleto.png'
 import cartao from '../../assets/images/cartao.png'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
+import { usePurchaseMutation } from '../../services/api'
 
 const Checkout = () => {
   const [payWithCard, setPayWithCard] = useState(false)
+  const [purchase, { isLoading, isError, data }] = usePurchaseMutation()
 
   const form = useFormik({
     initialValues: {
@@ -26,7 +28,7 @@ const Checkout = () => {
       expiresMonth: '',
       expiresYear: '',
       cardCode: '',
-      Installments: 1
+      installments: ''
     },
     validationSchema: yup.object({
       fullName: yup
@@ -41,13 +43,12 @@ const Checkout = () => {
         .string()
         .min(14, 'O campo precisa ter no mínimo 14 caracteres')
         .max(14, 'O campo precisa ter no mínimo 14 caracteres')
-        .email('E-mail inválido')
         .required('O campo é obrigatório'),
       deliveryEmail: yup
         .string()
         .email('E-mail inválido')
         .required('O campo é obrigatório'),
-      ConfirmDeliveryEmail: yup
+      confirmDeliveryEmail: yup
         .string()
         .oneOf([yup.ref('deliveryEmail')], 'Os e-mails são diferentes')
         .required('O campo é obrigatório'),
@@ -73,12 +74,12 @@ const Checkout = () => {
         .when((values, schema) =>
           payWithCard ? schema.required('O campo é obrigatório') : schema
         ),
-      ExpireMonth: yup
+      expiresMonth: yup
         .string()
         .when((values, schema) =>
           payWithCard ? schema.required('O campo é obrigatório') : schema
         ),
-      ExpiresYear: yup
+      expiresYear: yup
         .string()
         .when((values, schema) =>
           payWithCard ? schema.required('O campo é obrigatório') : schema
@@ -88,14 +89,46 @@ const Checkout = () => {
         .when((values, schema) =>
           payWithCard ? schema.required('O campo é obrigatório') : schema
         ),
-      Installments: yup
+      installments: yup
         .string()
         .when((values, schema) =>
           payWithCard ? schema.required('O campo é obrigatório') : schema
         )
     }),
     onSubmit: (values) => {
-      console.log(values)
+      purchase({
+        billing: {
+          document: values.cpf,
+          email: values.email,
+          name: values.fullName
+        },
+        delivery: {
+          email: values.deliveryEmail
+        },
+        payment: {
+          instalments: 1,
+          card: {
+            active: payWithCard,
+            code: Number(values.cardCode),
+            name: values.cardDisplayName,
+            number: values.cardNumber,
+            owner: {
+              document: values.cpfCardOwner,
+              name: values.cardOwner
+            },
+            expires: {
+              month: 1,
+              year: 2023
+            }
+          }
+        },
+        products: [
+          {
+            id: 1,
+            price: 10
+          }
+        ]
+      })
     }
   })
 
@@ -134,7 +167,7 @@ const Checkout = () => {
                 onChange={form.handleChange}
                 onBlur={form.handleBlur}
               />
-              <small>{getErrorMessage('email', form.errors.fullName)}</small>
+              <small>{getErrorMessage('email', form.errors.email)}</small>
             </InputGroup>
             <InputGroup>
               <label htmlFor="cpf">CPF</label>
@@ -146,7 +179,7 @@ const Checkout = () => {
                 onChange={form.handleChange}
                 onBlur={form.handleBlur}
               />
-              <small>{getErrorMessage('cpf', form.errors.fullName)}</small>
+              <small>{getErrorMessage('cpf', form.errors.cpf)}</small>
             </InputGroup>
           </Row>
           <h3 className="margin-top">Dados de entrega - conteúdo digital</h3>
@@ -162,7 +195,7 @@ const Checkout = () => {
                 onBlur={form.handleBlur}
               />
               <small>
-                {getErrorMessage('deliveryEmail', form.errors.fullName)}
+                {getErrorMessage('deliveryEmail', form.errors.deliveryEmail)}
               </small>
             </InputGroup>
             <InputGroup>
@@ -176,7 +209,10 @@ const Checkout = () => {
                 onBlur={form.handleBlur}
               />
               <small>
-                {getErrorMessage('confirmDeliveryEmail', form.errors.fullName)}
+                {getErrorMessage(
+                  'confirmDeliveryEmail',
+                  form.errors.confirmDeliveryEmail
+                )}
               </small>
             </InputGroup>
           </Row>
@@ -213,7 +249,7 @@ const Checkout = () => {
                       onBlur={form.handleBlur}
                     />
                     <small>
-                      {getErrorMessage('cardOwner', form.errors.fullName)}
+                      {getErrorMessage('cardOwner', form.errors.cardOwner)}
                     </small>
                   </InputGroup>
                   <InputGroup>
@@ -229,7 +265,10 @@ const Checkout = () => {
                       onBlur={form.handleBlur}
                     />
                     <small>
-                      {getErrorMessage('cpfCardOwner', form.errors.fullName)}
+                      {getErrorMessage(
+                        'cpfCardOwner',
+                        form.errors.cpfCardOwner
+                      )}
                     </small>
                   </InputGroup>
                 </Row>
@@ -245,7 +284,10 @@ const Checkout = () => {
                       onBlur={form.handleBlur}
                     />
                     <small>
-                      {getErrorMessage('cardDisplayName', form.errors.fullName)}
+                      {getErrorMessage(
+                        'cardDisplayName',
+                        form.errors.cardDisplayName
+                      )}
                     </small>
                   </InputGroup>
                   <InputGroup>
@@ -259,7 +301,7 @@ const Checkout = () => {
                       value={form.values.cardNumber}
                     />
                     <small>
-                      {getErrorMessage('cardNumber', form.errors.fullName)}
+                      {getErrorMessage('cardNumber', form.errors.cardNumber)}
                     </small>
                   </InputGroup>
                   <InputGroup maxWidth="123px">
@@ -273,7 +315,10 @@ const Checkout = () => {
                       onBlur={form.handleBlur}
                     />
                     <small>
-                      {getErrorMessage('expiresMonth', form.errors.fullName)}
+                      {getErrorMessage(
+                        'expiresMonth',
+                        form.errors.expiresMonth
+                      )}
                     </small>
                   </InputGroup>
                   <InputGroup maxWidth="123px">
@@ -287,7 +332,7 @@ const Checkout = () => {
                       onBlur={form.handleBlur}
                     />
                     <small>
-                      {getErrorMessage('expiresYear', form.errors.fullName)}
+                      {getErrorMessage('expiresYear', form.errors.expiresYear)}
                     </small>
                   </InputGroup>
                   <InputGroup maxWidth="48px">
@@ -301,7 +346,7 @@ const Checkout = () => {
                       onBlur={form.handleBlur}
                     />
                     <small>
-                      {getErrorMessage('cardCode', form.errors.fullName)}
+                      {getErrorMessage('cardCode', form.errors.cardCode)}
                     </small>
                   </InputGroup>
                 </Row>
@@ -311,7 +356,7 @@ const Checkout = () => {
                     <select
                       id="installments"
                       name="installments"
-                      value={form.values.cardCode}
+                      value={form.values.installments}
                       onChange={form.handleChange}
                       onBlur={form.handleBlur}
                     >
@@ -320,7 +365,10 @@ const Checkout = () => {
                       <option value="">3x de R$ 200,00</option>
                     </select>
                     <small>
-                      {getErrorMessage('installments', form.errors.fullName)}
+                      {getErrorMessage(
+                        'installments',
+                        form.errors.installments
+                      )}
                     </small>
                   </InputGroup>
                 </Row>
@@ -337,7 +385,7 @@ const Checkout = () => {
           </div>
         </>
       </Card>
-      <Button type="button" title="Cliqye aqui para finalizar a compra">
+      <Button type="button" title="Clique aqui para finalizar a compra">
         Finalizar compra
       </Button>
     </form>
