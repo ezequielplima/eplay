@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import * as yup from 'yup'
 import { useFormik } from 'formik'
+import { useSelector } from 'react-redux'
+import { Navigate } from 'react-router-dom'
 
 import Button from '../../components/Button'
 import Card from '../../components/Card'
@@ -11,10 +13,23 @@ import creditCard from '../../assets/images/cartao.png'
 import { usePurchaseMutation } from '../../services/api'
 
 import * as S from './styles'
+import { RootReducer } from '../../store'
+import { getTotalPrice, parseToBrl } from '../../utils'
+import { parse } from 'path'
+
+type installment = {
+  quantity: number
+  amount: number
+  formmattedAmount: string
+}
 
 const Checkout = () => {
   const [payWithCard, setPayWithCard] = useState(false)
-  const [purchase, { data, isSuccess }] = usePurchaseMutation()
+  const [purchase, { data, isSuccess, isLoading }] = usePurchaseMutation()
+  const { items } = useSelector((state: RootReducer) => state.cart)
+  const [installments, setInstallments] = useState<installment[]>([])
+
+  const TotalPrice = getTotalPrice(items)
 
   const form = useFormik({
     initialValues: {
@@ -134,14 +149,6 @@ const Checkout = () => {
     }
   })
 
-  const getErrorMessage = (fieldName: string, message?: string) => {
-    const isTouched = fieldName in form.touched
-    const isInvalid = fieldName in form.errors
-
-    if (isTouched && isInvalid) return message
-    return ''
-  }
-
   const checkInputHasError = (fieldName: string) => {
     const isTouched = fieldName in form.touched
     const isInvalid = fieldName in form.errors
@@ -150,9 +157,31 @@ const Checkout = () => {
     return hasError
   }
 
+  useEffect(() => {
+    const calculateInstallments = () => {
+      const installmentsArray: installment[] = []
+      for (let i = 1; i <= 6; i++) {
+        installmentsArray.push({
+          quantity: i,
+          amount: TotalPrice / i,
+          formmattedAmount: parseToBrl(TotalPrice / i)
+        })
+      }
+
+      return installmentsArray
+    }
+    if (TotalPrice > 0) {
+      setInstallments(calculateInstallments)
+    }
+  }, [TotalPrice])
+
+  if (items.length === 0) {
+    return <Navigate to="/" />
+  }
+
   return (
     <div className="container">
-      {isSuccess ? (
+      {isSuccess && data ? (
         <Card title="Muito obrigado">
           <>
             <p>
@@ -271,6 +300,7 @@ const Checkout = () => {
               <S.TabButton
                 isActive={!payWithCard}
                 onClick={() => setPayWithCard(false)}
+                type="button"
               >
                 <img src={barCode} alt="boleto" />
                 Boleto bancário
@@ -278,6 +308,7 @@ const Checkout = () => {
               <S.TabButton
                 isActive={payWithCard}
                 onClick={() => setPayWithCard(true)}
+                type="button"
               >
                 <img src={creditCard} alt="Cartão de crédito" />
                 Cartão de crédito
@@ -404,9 +435,12 @@ const Checkout = () => {
                             checkInputHasError('installments') ? 'error' : ''
                           }
                         >
-                          <option value="">1x de R$ 200,00</option>
-                          <option value="">2x de R$ 200,00</option>
-                          <option value="">3x de R$ 200,00</option>
+                          {installments.map((installment) => (
+                            <option key={installment.quantity}>
+                              {installment.quantity}x de{' '}
+                              {installment.formmattedAmount}
+                            </option>
+                          ))}
                         </select>
                       </S.InputGroup>
                     </S.Row>
@@ -425,7 +459,7 @@ const Checkout = () => {
             </>
           </Card>
           <Button
-            type="button"
+            type="submit"
             onclick={form.handleSubmit}
             title="Clique aqui para finalizar a compra"
           >
