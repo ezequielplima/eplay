@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as yup from 'yup'
 import { useFormik } from 'formik'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom'
 import InputMask from 'react-input-mask'
 
@@ -15,6 +15,8 @@ import { usePurchaseMutation } from '../../services/api'
 
 import * as S from './styles'
 import { RootReducer } from '../../store'
+import { clear } from '../../store/reducers/cart'
+
 import { getTotalPrice, parseToBrl } from '../../utils'
 
 type installment = {
@@ -28,6 +30,7 @@ const Checkout = () => {
   const [purchase, { data, isSuccess, isLoading }] = usePurchaseMutation()
   const { items } = useSelector((state: RootReducer) => state.cart)
   const [installments, setInstallments] = useState<installment[]>([])
+  const dispatch = useDispatch()
 
   const TotalPrice = getTotalPrice(items)
 
@@ -173,7 +176,13 @@ const Checkout = () => {
     }
   }, [TotalPrice])
 
-  if (items.length === 0) {
+  useEffect(() => {
+    if (isSuccess) {
+      dispatch(clear())
+    }
+  }, [isSuccess, dispatch])
+
+  if (items.length === 0 && !isSuccess) {
     return <Navigate to="/" />
   }
 
@@ -384,8 +393,8 @@ const Checkout = () => {
                         <label htmlFor="expiresMonth">Mês de expiração</label>
                         <InputMask
                           type="text"
-                          id="expireMonth"
-                          name="expireMonth"
+                          id="expiresMonth"
+                          name="expiresMonth"
                           value={form.values.expiresMonth}
                           onChange={form.handleChange}
                           onBlur={form.handleBlur}
